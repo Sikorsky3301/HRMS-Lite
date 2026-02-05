@@ -1,6 +1,9 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 
+const db = require('./db/database');
 const employeesRouter = require('./routes/employees');
 const attendanceRouter = require('./routes/attendance');
 
@@ -33,6 +36,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`HRMS Lite API running on port ${PORT}`);
-});
+db.ready
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`HRMS Lite API running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Database not ready:', err);
+    process.exit(1);
+  });

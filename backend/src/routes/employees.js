@@ -49,9 +49,9 @@ function validateEmployee(req, res, next) {
 }
 
 // GET /api/employees - List all employees
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const employees = db.prepare(`
+    const employees = await db.prepare(`
       SELECT id, employee_id, full_name, email, department, created_at
       FROM employees
       ORDER BY created_at DESC
@@ -64,23 +64,24 @@ router.get('/', (req, res) => {
 });
 
 // POST /api/employees - Add new employee
-router.post('/', validateEmployee, (req, res) => {
+router.post('/', validateEmployee, async (req, res) => {
   const { employee_id, full_name, email, department } = req.validatedEmployee;
 
   try {
-    const result = db.prepare(`
+    const result = await db.prepare(`
       INSERT INTO employees (employee_id, full_name, email, department)
       VALUES (?, ?, ?, ?)
     `).run(employee_id, full_name, email, department);
 
-    const employee = db.prepare('SELECT * FROM employees WHERE id = ?').get(result.lastInsertRowid);
+    const employee = await db.prepare('SELECT * FROM employees WHERE id = ?').get(result.lastInsertRowid);
     res.status(201).json(employee);
   } catch (err) {
-    if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-      if (err.message.includes('employee_id')) {
+    const isUnique = err.code === 'SQLITE_CONSTRAINT_UNIQUE' || err.code === '23505';
+    if (isUnique) {
+      if (err.message?.includes('employee_id') || err.constraint === 'employees_employee_id_key') {
         return res.status(409).json({ error: 'Duplicate Employee', message: 'An employee with this Employee ID already exists' });
       }
-      if (err.message.includes('email')) {
+      if (err.message?.includes('email') || err.constraint === 'employees_email_key') {
         return res.status(409).json({ error: 'Duplicate Email', message: 'An employee with this email already exists' });
       }
     }
@@ -90,14 +91,14 @@ router.post('/', validateEmployee, (req, res) => {
 });
 
 // DELETE /api/employees/:id - Delete employee
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).json({ error: 'Invalid ID', message: 'Employee ID must be a valid number' });
   }
 
   try {
-    const result = db.prepare('DELETE FROM employees WHERE id = ?').run(id);
+    const result = await db.prepare('DELETE FROM employees WHERE id = ?').run(id);
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Not Found', message: 'Employee not found' });
     }

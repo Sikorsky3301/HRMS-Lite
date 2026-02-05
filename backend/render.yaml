@@ -9,3 +9,5 @@ services:
         value: production
       - key: PORT
         sync: false
+      # DATABASE_URL will be automatically set when you link a PostgreSQL database
+      # Add a PostgreSQL database service in Render and link it to this web service

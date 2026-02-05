@@ -43,7 +43,7 @@ function validateAttendance(req, res, next) {
 }
 
 // GET /api/attendance - List all attendance (optional: ?employee_id=xxx&date=yyyy-mm-dd)
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   const { employee_id, date } = req.query;
 
   try {
@@ -66,7 +66,7 @@ router.get('/', (req, res) => {
 
     query += ' ORDER BY a.date DESC, a.created_at DESC';
 
-    const records = db.prepare(query).all(...params);
+    const records = await db.prepare(query).all(...params);
     res.json(records);
   } catch (err) {
     console.error(err);
@@ -75,7 +75,7 @@ router.get('/', (req, res) => {
 });
 
 // GET /api/attendance/employee/:employeeId - Get attendance for a specific employee
-router.get('/employee/:employeeId', (req, res) => {
+router.get('/employee/:employeeId', async (req, res) => {
   const { employeeId } = req.params;
   const { date } = req.query;
 
@@ -95,7 +95,7 @@ router.get('/employee/:employeeId', (req, res) => {
 
     query += ' ORDER BY a.date DESC';
 
-    const records = db.prepare(query).all(...params);
+    const records = await db.prepare(query).all(...params);
     res.json(records);
   } catch (err) {
     console.error(err);
@@ -104,11 +104,11 @@ router.get('/employee/:employeeId', (req, res) => {
 });
 
 // GET /api/attendance/stats/:employeeId - Get total present days for an employee (bonus)
-router.get('/stats/:employeeId', (req, res) => {
+router.get('/stats/:employeeId', async (req, res) => {
   const { employeeId } = req.params;
 
   try {
-    const stats = db.prepare(`
+    const stats = await db.prepare(`
       SELECT 
         COUNT(*) as total_days,
         SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present_days,
@@ -125,23 +125,23 @@ router.get('/stats/:employeeId', (req, res) => {
 });
 
 // POST /api/attendance - Mark attendance
-router.post('/', validateAttendance, (req, res) => {
+router.post('/', validateAttendance, async (req, res) => {
   const { employee_id, date, status } = req.validatedAttendance;
 
   try {
     // Verify employee exists
-    const employee = db.prepare('SELECT id FROM employees WHERE employee_id = ?').get(employee_id);
+    const employee = await db.prepare('SELECT id FROM employees WHERE employee_id = ?').get(employee_id);
     if (!employee) {
       return res.status(404).json({ error: 'Not Found', message: 'Employee not found' });
     }
 
-    db.prepare(`
+    await db.prepare(`
       INSERT INTO attendance (employee_id, date, status)
       VALUES (?, ?, ?)
       ON CONFLICT(employee_id, date) DO UPDATE SET status = excluded.status
     `).run(employee_id, date, status);
 
-    const record = db.prepare(`
+    const record = await db.prepare(`
       SELECT a.id, a.employee_id, e.full_name, a.date, a.status, a.created_at
       FROM attendance a
       LEFT JOIN employees e ON a.employee_id = e.employee_id
