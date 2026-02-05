@@ -1,5 +1,7 @@
 # HRMS Lite
 
+![HRMS Lite UI](image.png)
+
 A lightweight Human Resource Management System for managing employee records and daily attendance.
 
 ## Features
