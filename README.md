@@ -14,8 +14,8 @@ A lightweight Human Resource Management System for managing employee records and
 ## Tech Stack
 
 - **Frontend**: React 19, Vite, Tailwind CSS
-- **Backend**: Node.js, Express
-- **Database**: SQLite (better-sqlite3)
+- **Backend**: Node.js (Express) and Python (FastAPI alternative)
+- **Database**: PostgreSQL (Supabase)
 
 ## Prerequisites
 
@@ -31,13 +31,30 @@ git clone <repository-url>
 cd hrms-lite
 ```
 
-### 2. Backend setup
+### 2. Backend setup (Node.js / Express)
 
 ```bash
 cd backend
 npm install
 node src/db/init.js   # Initialize database
 npm run dev           # Start API on http://localhost:5000
+```
+
+### 2b. Backend setup (FastAPI – optional)
+
+```bash
+cd fastapi-backend
+python -m venv .venv
+.venv\Scripts\activate  # On Windows
+pip install -r requirements.txt
+
+uvicorn app.main:app --reload --port 8000  # FastAPI backend on http://localhost:8000
+```
+
+If you want the frontend to use this FastAPI backend instead of the Node one, set:
+
+```env
+VITE_API_URL=http://localhost:8000/api
 ```
 
 ### 3. Frontend setup (in a new terminal)
@@ -76,8 +93,9 @@ cd frontend && npm run build
 
 ## Environment Variables
 
-- `PORT` – Backend port (default: 5000)
-- `DATABASE_PATH` – Path to SQLite DB file (default: ./hrms.db)
+- `PORT` – Backend port (default: 5000 for Node, 8000 for FastAPI)
+- `DATABASE_URL` – PostgreSQL connection string (e.g. Supabase / Render Postgres)
+- `DATABASE_PATH` – (Node-only, legacy) Path to SQLite DB file if using local SQLite
 - `VITE_API_URL` – Frontend API base URL (for production, set to backend URL)
 
 ## Assumptions & Limitations
@@ -89,7 +107,7 @@ cd frontend && npm run build
 
 ## Deployment
 
-### Backend (Render)
+### Backend (Render – Node.js / Express)
 
 1. Create a new Web Service on [Render](https://render.com)
 2. Connect your GitHub repo
@@ -97,6 +115,14 @@ cd frontend && npm run build
 4. Build: `npm install`
 5. Start: `npm start`
 6. Copy the deployed URL (e.g. `https://hrms-lite-api.onrender.com`)
+
+### Backend (FastAPI – optional, e.g. Render / Railway)
+
+1. Create a new Web Service
+2. Root directory: `fastapi-backend`
+3. Build: `pip install -r requirements.txt`
+4. Start: `uvicorn app.main:app --host 0.0.0.0 --port 8000`
+5. Copy the deployed URL (e.g. `https://hrms-lite-fastapi.onrender.com`) and use it as `VITE_API_URL=<url>/api` if you want the frontend to talk to FastAPI.
 
 ### Frontend (Vercel)
 
