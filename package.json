@@ -1,0 +1,13 @@
+{
+  "name": "hrms-lite",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HRMS Lite - Human Resource Management System",
+  "scripts": {
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "backend:start": "cd backend && npm start",
+    "backend:init": "cd backend && node src/db/init.js"
+  }
+}
