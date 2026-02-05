@@ -87,5 +87,23 @@ cd frontend && npm run build
 
 ## Deployment
 
-- **Frontend**: Deploy `frontend/dist` to Vercel/Netlify. Set `VITE_API_URL` to your backend URL.
-- **Backend**: Deploy to Render/Railway. For SQLite on Render, the DB persists within the service but resets on redeploy; use external DB (e.g. Neon, Turso) for production data persistence.
+### Backend (Render)
+
+1. Create a new Web Service on [Render](https://render.com)
+2. Connect your GitHub repo
+3. Root directory: `backend`
+4. Build: `npm install`
+5. Start: `npm start`
+6. Copy the deployed URL (e.g. `https://hrms-lite-api.onrender.com`)
+
+### Frontend (Vercel)
+
+1. Create a new project on [Vercel](https://vercel.com)
+2. Connect your GitHub repo
+3. Root directory: `frontend`
+4. Add environment variable: `VITE_API_URL` = your backend URL (e.g. `https://hrms-lite-api.onrender.com/api`)
+5. Deploy
+
+### Note
+
+On Render's free tier, SQLite data resets on redeploy (ephemeral filesystem). For production, use an external database (Neon PostgreSQL, Turso, etc.).
